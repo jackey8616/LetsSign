@@ -54,7 +54,7 @@ public class InventorySign implements Listener {
             signdays += signCheck ? 1 : 0;
         this.dayStack = setItemNameAndLore(new ItemStack(Material.WATCH, signdays), "已簽到了" + signdays + "天", null);
 
-        this.gift = getCloestReward();
+        this.gift = instance.gifts[signdays + 1];
         if(gift != null)
             this.gift = setItemNameAndLore(gift.clone(), "今日獎勵: " + (gift.getItemMeta().hasDisplayName() ? gift.getItemMeta().getDisplayName() : gift.getType().name().replace("_", " ").toLowerCase()), null);
 
@@ -80,14 +80,7 @@ public class InventorySign implements Listener {
         inv.setItem(53, gift);
         player.openInventory(inv);
     }
-
-    private ItemStack getCloestReward() {
-        for(int i = signdays; i < instance.gifts.length; ++i)
-            if(instance.gifts[i] != null)
-                return instance.gifts[i];
-        return instance.gifts[30];
-    }
-
+    
     private ItemStack setItemNameAndLore(ItemStack item, String name, String[] lore) {
         ItemMeta im = item.getItemMeta();
         im.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
@@ -99,10 +92,12 @@ public class InventorySign implements Listener {
 
     @EventHandler(priority= EventPriority.MONITOR)
     void onInventoryClick(InventoryClickEvent event) {
-        if(!event.getInventory().getName().equals(this.name)) { return; }
+        if(!event.getInventory().getName().equals(this.name) || !(event.getSlot() > 0 && event.getSlot() < 54)) { return; }
         event.setCancelled(true);
+
         int clickSlot = event.getSlot();
         ItemStack clickStack = event.getInventory().getItem(clickSlot);
+
         if(clickStack != null && clickStack.getItemMeta().getDisplayName().contains("可簽到")) {
 
             ItemStack signStack = new ItemStack(Material.STAINED_GLASS_PANE, clickStack.getAmount(), (short) 5);
@@ -120,7 +115,13 @@ public class InventorySign implements Listener {
             instance.playersSign.remove(event.getWhoClicked().getUniqueId());
             instance.playersSign.put(event.getWhoClicked().getUniqueId(), signedDay);
 
-            event.getWhoClicked().getInventory().addItem(gift);
+            if(gift != null)
+                event.getWhoClicked().getInventory().addItem(gift);
+
+            ItemStack giftStack = instance.gifts[signdays + 1];
+            if(giftStack != null)
+                setItemNameAndLore(giftStack, "明日獎勵: " + (giftStack.getItemMeta().hasDisplayName() ? giftStack.getItemMeta().getDisplayName() : giftStack.getType().name().replace("_", " ").toLowerCase()), null);
+            event.getInventory().setItem(53, giftStack);
         }
     }
 }
