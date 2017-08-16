@@ -1,0 +1,9 @@
+name: LetsSign
+version: 1.0
+main: org.mocraft.LetsSign
+commands:
+   ls:
+      description: This is a command to set reward day and item in hand.
+      ussage: |
+              /<command> sign
+              /<command> reward-day <day>
